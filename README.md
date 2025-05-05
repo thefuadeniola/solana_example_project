@@ -4,6 +4,7 @@ In this project, I used solana programs to perform mathematical operations on th
 Solana programs are written in `Rust` while the logic to ping the blockchain is written in `Typescript`. 
 Here is how it works:
 ## File and folder structure
+```
 ├── client (Typescript files to ping our blockchain programs)
 │└── main.ts
 |└── calculator.ts
@@ -17,6 +18,7 @@ Here is how it works:
 ├── node_modules
 ├── package.json
 └── package-lock.json
+```
 We start with the package.json file by running npm init, to give us barebones of the projects. For this project use [this package.json file](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/math-stuff/package.json)
 Now that overall dependencies are done,
  ## Rust dependencies
@@ -44,7 +46,9 @@ crate-type = ["cdylib", "lib"]
 In our rust files (lib.rs, calculator.rs), we write the blockchain logic. In lib.rs, after importing all use statements, we specify the entrypoint using the entrypoint macro.
 All solana programs must have one entrypoint. In this case `entrypoint!(process_instruction)`
 `process_instruction` is our overall function with the following signature: 
-`fn process_instruction(program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult;`
+```
+fn process_instruction(program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult;
+```
 In this function, we write in rust whatever we want our program to do on the blockchain.
 ### program_id
 public key of the deployed program
