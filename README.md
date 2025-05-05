@@ -77,3 +77,87 @@ export async function createKeypairFromFile(filePath: string): Promise<Keypair> 
     return Keypair.fromSecretKey(secretKey);
 }
 ```
+The full list of util.ts functions including the more verbose functions is [here](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/advanced-math/src/client/util.ts)
+
+### main.ts
+This is the engine room of the project. We start by pointing the util.ts file to our local machine keypair. This is the keypair account that will be used to deploy this program (owner)
+```
+ts
+const CONFIG_FILE_PATH = path.resolve(
+ os.homedir(),
+.config,
+solana,
+cli,
+config.yml
+) 
+```
+
+We then create some variables and assign them to the types we imported from `'@solana/web3'`
+```
+let connection: Connection;
+let localKeypair: Keypair;
+let programKeypair: Keypair;
+let programId: Pubkey;
+let clientPubKey: Pubkey
+```
+
+Then we point the ts file to the directory of our compiled program.so files. (Wherever the rust compiler outputted the compiled program files). In this case:
+```
+const PROGRAM_PATH = path.resolve(__dirname, '../../dist/program');
+```
+
+Next, we write the function to connect to the api (devnet in this case) and set the connection to the `connection` variable.
+```
+ts
+export async function connect() {
+    connection = new Connection("https://api.devnet.solana.com", 'confirmed');
+
+    console.log("Successfully connected to Solana dev net");
+}
+```
+The next thing we do is to get the local machine account from the `CONFIG_FILE_PATH` variable and send some devnet solana to its public key if needed. We do the same reading of file using `fs.readFromFile()` and then `createKeypairFromFile()`. The only difference
+here is that the filepath is a .yaml. So after reading the file and before creating the keypair, we add this line:
+`const keypairPath = yaml.parse(configYml).keypair_path;
+
+If needed, we can request airdrop from the devnet to add solana to our account: 
+```
+ts
+const airdropRequest =  connection.requestAirdrop(
+ localKeypair.publicKey, LAMPORTS_PER_SOL*2 // LAMPORTS_PER_SOL is imported from solana/web3.js and it refers to the amounts of lamports in a sol. lamport is the smallest unit of solana.
+)
+// To differentiate each transaction and prevent duplication, solana requires that we add the latest blockhash and the latest block height.
+const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    await connection.confirmTransaction({
+        signature: airdropRequest,
+        blockhash,
+        lastValidBlockHeight
+}) 
+```
+
+We get the programId (public key of the deployed programs) through another series of reading file paths. To parse the programId into a readable string, we use `programId.toBase58()`. This applies
+to any variable of type Pubkey.
+Next, we configure a client account from inside our project. This will mean that this created account is owned by our program, and we can read/write to it. It can also ping our program.
+```
+ts
+export async function configureClientAccount(spaceSize: number) {
+ // the fastest way to get a pubkey is simply to create it with a seed.
+ let SEED = 'test1'
+ clientPubkey = await Pubkey.createWithSeed(localKeypair.publicKey, SEED, programId);
+}
+// check if public key created does not already contain data. If null:
+   const clientAccount = await connection.getAccountInfo(clientPubKey);
+   if(clientAccount === null) {
+       const transaction = new Transaction().add(
+           SystemProgram.createAccountWithSeed({
+               fromPubkey: localKeypair.publicKey,
+               basePubkey: localKeypair.publicKey,
+               seed: SEED,
+               newAccountPubkey: clientPubKey,
+               lamports: LAMPORTS_PER_SOL,
+               space: spaceSize,
+               programId
+           })
+    await sendAndConfirmTransaction(connection, transaction, [localKeypair])
+       );
+ 
+```
