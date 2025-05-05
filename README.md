@@ -7,6 +7,7 @@ Here is how it works:
 ```
 ├── client (Typescript files to ping our blockchain programs)
 │└── main.ts
+|└── util.ts
 |└── calculator.ts
 ├── dist (target folder for all output files)
 ├── scripts (this is where I define how npm accesses and interacts with rust files)
@@ -56,4 +57,23 @@ public key of the deployed program
 array of accounts our project can possibly read/write from
 ### instruction_data
 additional instructions we want to pass to our program
-Since instruction_data is an array of u8 bytes, we store it in a different file, hence why we have the extra calculator.rs module.
+
+## Scripts
+This is just a file containing scripts to connect npm to cargo. If you are following this same file structure, use paste [this](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/math-stuff/scripts/cicd.sh) into your scripts/cicd.sh. *change this after deploying yours*
+
+## Typescript client files
+In our main.ts, we write the step by step process by which we create the data account we will interact with (this is because solana does not allow a program write to or edit data of an account it does not own);
+and how we ping our program.
+### util.ts
+In the util.ts, we write the utility function to `createKeypairFromFile`. We will potentially need to create key pairs to get our program id, local keypair, etc. client/util.ts:
+```
+import { Keypair } from "@solana/web3.js";
+import {fs} from 'mz';
+
+export async function createKeypairFromFile(filePath: string): Promise<Keypair> {
+    const secretKeyString = await fs.readFile(filePath, {encoding: 'utf8'});
+    const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
+
+    return Keypair.fromSecretKey(secretKey);
+}
+```
