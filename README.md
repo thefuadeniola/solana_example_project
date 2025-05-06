@@ -1,7 +1,18 @@
 # solana_example_project
 This is a solana example project to demonstrate data, program and native accounts
 In this project, I used solana programs to perform mathematical operations on the blockchain.
-Solana programs are written in `Rust` while the logic to ping the blockchain is written in `Typescript`. 
+Solana programs are written in `Rust` while the logic to ping the blockchain is written in `Typescript`.
+
+## Quick start
+You will need to have linux (wsl goes) running on your computer with cargo & rust installed. Once that is settled, download and unpack the files
+in any manner you want, then in your terminal: 
+```
+npm run build
+npm run deploy
+npm run example
+```
+Your project should be up and running!
+
 Here is how it works:
 ## File and folder structure
 ```
