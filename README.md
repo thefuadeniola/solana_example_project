@@ -20,7 +20,7 @@ Here is how it works:
 ├── package.json
 └── package-lock.json
 ```
-We start with the package.json file by running npm init, to give us barebones of the projects. For this project use [this package.json file](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/math-stuff/package.json)
+We start with the package.json file by running npm init, to give us barebones of the projects. For this project use [this package.json file](https://github.com/thefuadeniola/solana_example_project/blob/main/package.json)
 Now that overall dependencies are done,
  ## Rust dependencies
  We use borsh for serializing/deserializing data, borsh-derive and solana-program for everything solana. Add the following to your cargo.toml file and run `cargo build` in a terminal pointing to the directory where you have your cargo.toml file
@@ -59,7 +59,7 @@ array of accounts our project can possibly read/write from
 additional instructions we want to pass to our program
 
 ## Scripts
-This is just a file containing scripts to connect npm to cargo. If you are following this same file structure, use paste [this](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/math-stuff/scripts/cicd.sh) into your scripts/cicd.sh. *change this after deploying yours*
+This is just a file containing scripts to connect npm to cargo. If you are following this same file structure, use paste [this](https://github.com/thefuadeniola/solana_example_project/blob/main/scripts/cicd.sh) into your scripts/cicd.sh.
 
 ## Typescript client files
 In our main.ts, we write the step by step process by which we create the data account we will interact with (this is because solana does not allow a program write to or edit data of an account it does not own);
@@ -77,7 +77,7 @@ export async function createKeypairFromFile(filePath: string): Promise<Keypair> 
     return Keypair.fromSecretKey(secretKey);
 }
 ```
-The full list of util.ts functions including the more verbose functions is [here](https://github.com/Coding-and-Crypto/Rust-Solana-Tutorial/blob/master/advanced-math/src/client/util.ts)
+The full list of util.ts functions including the more verbose functions is [here](https://github.com/thefuadeniola/solana_example_project/blob/main/client/util.ts)
 
 ### main.ts
 This is the engine room of the project. We start by pointing the util.ts file to our local machine keypair. This is the keypair account that will be used to deploy this program (owner)
@@ -122,7 +122,7 @@ After connecting to the devnet, the more verbose functions include:
 -> pinging our program with `pingProgram`
 -> calling all the functions under the `example` function
 
-The full main.ts file is [here]()
+The full main.ts file is [here](https://github.com/thefuadeniola/solana_example_project/blob/main/client/main.ts)
 
 Finally, we create one more file, calculator.ts where we construct the struct with an initial value of 0, serialize (using borsh) it into an `accountSpaceSize` and pass it as a parameter to calling our `example()`
 function. So that our `clientPubKey` account now holds calculator data:
@@ -147,4 +147,4 @@ const CALCULATOR_SIZE = borsh.serialize(
 
 ```
 
-Finally, we call the function and handle the success and error cases. Full calculator.ts file is [here](). And there it is. Our onchain calculator is now up and running!
+Finally, we call the function and handle the success and error cases. Full calculator.ts file is [here](https://github.com/thefuadeniola/solana_example_project/blob/main/client/calculator.ts). And there it is. Our onchain calculator is now up and running!
