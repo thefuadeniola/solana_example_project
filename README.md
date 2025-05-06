@@ -115,49 +115,36 @@ export async function connect() {
     console.log("Successfully connected to Solana dev net");
 }
 ```
-The next thing we do is to get the local machine account from the `CONFIG_FILE_PATH` variable and send some devnet solana to its public key if needed. We do the same reading of file using `fs.readFromFile()` and then `createKeypairFromFile()`. The only difference
-here is that the filepath is a .yaml. So after reading the file and before creating the keypair, we add this line:
-`const keypairPath = yaml.parse(configYml).keypair_path;
+After connecting to the devnet, the more verbose functions include: 
+-> fetch local machine pubkey and aidrop sol if needed (from `CONFIG_FILE_PATH`)
+-> fetching programId from `PROGRAM_PATH`
+-> creating a `clientPubKey` owned by our program which we can read/write to
+-> pinging our program with `pingProgram`
+-> calling all the functions under the `example` function
 
-If needed, we can request airdrop from the devnet to add solana to our account: 
-```
-ts
-const airdropRequest =  connection.requestAirdrop(
- localKeypair.publicKey, LAMPORTS_PER_SOL*2 // LAMPORTS_PER_SOL is imported from solana/web3.js and it refers to the amounts of lamports in a sol. lamport is the smallest unit of solana.
-)
-// To differentiate each transaction and prevent duplication, solana requires that we add the latest blockhash and the latest block height.
-const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    await connection.confirmTransaction({
-        signature: airdropRequest,
-        blockhash,
-        lastValidBlockHeight
-}) 
-```
+The full main.ts file is [here]()
 
-We get the programId (public key of the deployed programs) through another series of reading file paths. To parse the programId into a readable string, we use `programId.toBase58()`. This applies
-to any variable of type Pubkey.
-Next, we configure a client account from inside our project. This will mean that this created account is owned by our program, and we can read/write to it. It can also ping our program.
+Finally, we create one more file, calculator.ts where we construct the struct with an initial value of 0, serialize (using borsh) it into an `accountSpaceSize` and pass it as a parameter to calling our `example()`
+function. So that our `clientPubKey` account now holds calculator data:
 ```
-ts
-export async function configureClientAccount(spaceSize: number) {
- // the fastest way to get a pubkey is simply to create it with a seed.
- let SEED = 'test1'
- clientPubkey = await Pubkey.createWithSeed(localKeypair.publicKey, SEED, programId);
+class Calculator {
+    value = 0;
+    constructor(fields: {value: number} | undefined = undefined) {
+        if(fields){
+            this.value = fields.value
+        }
+    }
 }
-// check if public key created does not already contain data. If null:
-   const clientAccount = await connection.getAccountInfo(clientPubKey);
-   if(clientAccount === null) {
-       const transaction = new Transaction().add(
-           SystemProgram.createAccountWithSeed({
-               fromPubkey: localKeypair.publicKey,
-               basePubkey: localKeypair.publicKey,
-               seed: SEED,
-               newAccountPubkey: clientPubKey,
-               lamports: LAMPORTS_PER_SOL,
-               space: spaceSize,
-               programId
-           })
-    await sendAndConfirmTransaction(connection, transaction, [localKeypair])
-       );
- 
+
+const CalculatorSchema = new Map([
+    [Calculator, { kind: 'struct', fields: [['value', 'u32']] }]
+]);
+
+const CALCULATOR_SIZE = borsh.serialize(
+    CalculatorSchema,
+    new Calculator()
+).length;
+
 ```
+
+Finally, we call the function and handle the success and error cases. Full calculator.ts file is [here](). And there it is. Our onchain calculator is now up and running!
